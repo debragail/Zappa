@@ -15,6 +15,7 @@ import sys
 from past.builtins import basestring
 
 from urllib.parse import urlparse
+from security import safe_requests
 
 LOG = logging.getLogger(__name__)
 
@@ -210,16 +211,12 @@ def get_event_source(event_source, lambda_arn, target_function, boto_session, dr
     to schedule this event, and return the event source.
 
     """
-    import kappa.function
-    import kappa.restapi
     import kappa.event_source.base
     import kappa.event_source.dynamodb_stream
     import kappa.event_source.kinesis
     import kappa.event_source.s3
     import kappa.event_source.sns
     import kappa.event_source.cloudwatch
-    import kappa.policy
-    import kappa.role
     import kappa.awsclient
 
     class PseudoContext:
@@ -452,10 +449,9 @@ def check_new_version_available(this_version):
     Returns True is updateable, else False.
 
     """
-    import requests
 
     pypi_url = 'https://pypi.org/pypi/Zappa/json'
-    resp = requests.get(pypi_url, timeout=1.5)
+    resp = safe_requests.get(pypi_url, timeout=1.5)
     top_version = resp.json()['info']['version']
 
     return this_version != top_version

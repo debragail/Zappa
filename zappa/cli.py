@@ -20,12 +20,10 @@ import collections
 import hjson as json
 import inspect
 import importlib
-import logging
 import os
 import pkg_resources
 import random
 import re
-import requests
 import slugify
 import string
 import sys
@@ -41,11 +39,12 @@ from click.globals import push_context
 from dateutil import parser
 from datetime import datetime, timedelta
 
-from .core import Zappa, logger, API_GATEWAY_REGIONS
+from .core import Zappa, API_GATEWAY_REGIONS
 from .utilities import (check_new_version_available, detect_django_settings,
                   detect_flask_apps, parse_s3_url, human_size,
-                  validate_name, InvalidAwsLambdaName, get_venv_from_python_version,
+                  validate_name, get_venv_from_python_version,
                   get_runtime_from_python_version, string_to_timestamp, is_valid_bucket_name)
+from security import safe_requests
 
 
 CUSTOM_SETTINGS = [
@@ -1668,13 +1667,11 @@ class ZappaCLI:
 
         # Detect Django/Flask
         try: # pragma: no cover
-            import django
             has_django = True
         except ImportError as e:
             has_django = False
 
         try: # pragma: no cover
-            import flask
             has_flask = True
         except ImportError as e:
             has_flask = False
@@ -2716,7 +2713,7 @@ class ZappaCLI:
             return
 
         touch_path = self.stage_config.get('touch_path', '/')
-        req = requests.get(endpoint_url + touch_path)
+        req = safe_requests.get(endpoint_url + touch_path)
 
         # Sometimes on really large packages, it can take 60-90 secs to be
         # ready and requests will return 504 status_code until ready.
@@ -2726,7 +2723,7 @@ class ZappaCLI:
             i = 0
             status_code = 504
             while status_code == 504 and i <= 4:
-                req = requests.get(endpoint_url + touch_path)
+                req = safe_requests.get(endpoint_url + touch_path)
                 status_code = req.status_code
                 i += 1
 

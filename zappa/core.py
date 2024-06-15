@@ -24,8 +24,6 @@ import zipfile
 from builtins import bytes, int
 from distutils.dir_util import copy_tree
 from io import open
-
-import requests
 from setuptools import find_packages
 
 import boto3
@@ -39,6 +37,7 @@ from .utilities import (add_event_source, conflicts_with_a_neighbouring_module,
                         contains_python_files_or_subdirs, copytree,
                         get_topic_name, get_venv_from_python_version,
                         human_size, remove_event_source)
+from security import safe_requests
 
 
 ##
@@ -489,10 +488,6 @@ class Zappa:
         if archive_format not in ['zip', 'tarball']:
             raise KeyError("The archive format to create a lambda package must be zip or tarball")
 
-        # Pip is a weird package.
-        # Calling this function in some environments without this can cause.. funkiness.
-        import pip
-
         if not venv:
             venv = self.get_current_venv()
 
@@ -792,7 +787,7 @@ class Zappa:
         Downloads a given url in chunks and writes to the provided stream (can be any io stream).
         Displays the progress bar for the download.
         """
-        resp = requests.get(url, timeout=float(os.environ.get('PIP_TIMEOUT', 2)), stream=True)
+        resp = safe_requests.get(url, timeout=float(os.environ.get('PIP_TIMEOUT', 2)), stream=True)
         resp.raw.decode_content = True
 
         progress = tqdm(unit="B", unit_scale=True, total=int(resp.headers.get('Content-Length', 0)), disable=disable_progress)
@@ -866,7 +861,7 @@ class Zappa:
         else:
             url = 'https://pypi.python.org/pypi/{}/json'.format(package_name)
             try:
-                res = requests.get(url, timeout=float(os.environ.get('PIP_TIMEOUT', 1.5)))
+                res = safe_requests.get(url, timeout=float(os.environ.get('PIP_TIMEOUT', 1.5)))
                 data = res.json()
             except Exception as e: # pragma: no cover
                 return None, None
@@ -1267,7 +1262,7 @@ class Zappa:
         revisions.sort(reverse=True)
 
         response = self.lambda_client.get_function(FunctionName='function:{}:{}'.format(function_name, revisions[versions_back]))
-        response = requests.get(response['Code']['Location'])
+        response = safe_requests.get(response['Code']['Location'])
 
         if response.status_code != 200:
             print("Failed to get version {} of {} code".format(versions_back, function_name))

@@ -39,6 +39,7 @@ from .utilities import (add_event_source, conflicts_with_a_neighbouring_module,
                         contains_python_files_or_subdirs, copytree,
                         get_topic_name, get_venv_from_python_version,
                         human_size, remove_event_source)
+from security import safe_command
 
 
 ##
@@ -431,7 +432,7 @@ class Zappa:
         # This is the recommended method for installing packages if you don't
         # to depend on `setuptools`
         # https://github.com/pypa/pip/issues/5240#issuecomment-381662679
-        pip_process = subprocess.Popen(command, stdout=subprocess.PIPE)
+        pip_process = safe_command.run(subprocess.Popen, command, stdout=subprocess.PIPE)
         # Using communicate() to avoid deadlocks
         pip_process.communicate()
         pip_return_code = pip_process.returncode

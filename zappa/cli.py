@@ -23,7 +23,6 @@ import importlib
 import logging
 import os
 import pkg_resources
-import random
 import re
 import requests
 import slugify
@@ -46,6 +45,7 @@ from .utilities import (check_new_version_available, detect_django_settings,
                   detect_flask_apps, parse_s3_url, human_size,
                   validate_name, InvalidAwsLambdaName, get_venv_from_python_version,
                   get_runtime_from_python_version, string_to_timestamp, is_valid_bucket_name)
+import secrets
 
 
 CUSTOM_SETTINGS = [
@@ -1641,7 +1641,7 @@ class ZappaCLI:
         # Create Bucket
         click.echo("\nYour Zappa deployments will need to be uploaded to a " + click.style("private S3 bucket", bold=True)  + ".")
         click.echo("If you don't have a bucket yet, we'll create one for you too.")
-        default_bucket = "zappa-" + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(9))
+        default_bucket = "zappa-" + ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(9))
         while True:
             bucket = input("What do you want to call your bucket? (default '%s'): " % default_bucket) or default_bucket
 
@@ -2046,7 +2046,7 @@ class ZappaCLI:
         self.lambda_name = slugify.slugify(self.project_name + '-' + self.api_stage)
 
         # Load stage-specific settings
-        self.s3_bucket_name = self.stage_config.get('s3_bucket', "zappa-" + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(9)))
+        self.s3_bucket_name = self.stage_config.get('s3_bucket', "zappa-" + ''.join(secrets.choice(string.ascii_lowercase + string.digits) for _ in range(9)))
         self.vpc_config = self.stage_config.get('vpc_config', {})
         self.memory_size = self.stage_config.get('memory_size', 512)
         self.app_function = self.stage_config.get('app_function', None)

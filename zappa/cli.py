@@ -25,7 +25,6 @@ import os
 import pkg_resources
 import random
 import re
-import requests
 import slugify
 import string
 import sys
@@ -46,6 +45,7 @@ from .utilities import (check_new_version_available, detect_django_settings,
                   detect_flask_apps, parse_s3_url, human_size,
                   validate_name, InvalidAwsLambdaName, get_venv_from_python_version,
                   get_runtime_from_python_version, string_to_timestamp, is_valid_bucket_name)
+from security import safe_requests
 
 
 CUSTOM_SETTINGS = [
@@ -2716,7 +2716,7 @@ class ZappaCLI:
             return
 
         touch_path = self.stage_config.get('touch_path', '/')
-        req = requests.get(endpoint_url + touch_path)
+        req = safe_requests.get(endpoint_url + touch_path)
 
         # Sometimes on really large packages, it can take 60-90 secs to be
         # ready and requests will return 504 status_code until ready.
@@ -2726,7 +2726,7 @@ class ZappaCLI:
             i = 0
             status_code = 504
             while status_code == 504 and i <= 4:
-                req = requests.get(endpoint_url + touch_path)
+                req = safe_requests.get(endpoint_url + touch_path)
                 status_code = req.status_code
                 i += 1
 

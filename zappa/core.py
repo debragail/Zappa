@@ -11,7 +11,6 @@ import hashlib
 import json
 import logging
 import os
-import random
 import re
 import shutil
 import string
@@ -39,6 +38,7 @@ from .utilities import (add_event_source, conflicts_with_a_neighbouring_module,
                         contains_python_files_or_subdirs, copytree,
                         get_topic_name, get_venv_from_python_version,
                         human_size, remove_event_source)
+import secrets
 
 
 ##
@@ -2630,7 +2630,7 @@ class Zappa:
         logger.debug('Adding new permission to invoke Lambda function: {}'.format(lambda_name))
         permission_response = self.lambda_client.add_permission(
             FunctionName=lambda_name,
-            StatementId=''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(8)),
+            StatementId=''.join(secrets.choice(string.ascii_uppercase + string.digits) for _ in range(8)),
             Action='lambda:InvokeFunction',
             Principal=principal,
             SourceArn=source_arn,
@@ -2726,7 +2726,7 @@ class Zappa:
                         Rule=rule_name,
                         Targets=[
                             {
-                                'Id': 'Id' + ''.join(random.choice(string.digits) for _ in range(12)),
+                                'Id': 'Id' + ''.join(secrets.choice(string.digits) for _ in range(12)),
                                 'Arn': lambda_arn,
                                 'InputTransformer': {
                                     'InputPathsMap': {

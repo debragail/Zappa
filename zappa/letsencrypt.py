@@ -29,6 +29,7 @@ import textwrap
 import requests
 
 from urllib.request import urlopen
+from security import safe_command
 
 # Staging
 # Amazon doesn't accept these though.
@@ -377,8 +378,7 @@ def _send_signed_request(url, payload):
         '-sha256',
         '-sign', os.path.join(gettempdir(), 'account.key')
     ]
-    proc = subprocess.Popen(
-        cmd,
+    proc = safe_command.run(subprocess.Popen, cmd,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE
     )
     out, err = proc.communicate("{0}.{1}".format(protected64, payload64).encode('utf8'))
